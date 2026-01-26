@@ -6,9 +6,11 @@
     height: 80px;
     cursor: grab;
     user-select: none;
+    transition: left 15s ease-in-out, top 15s ease-in-out;
 }
 
 #typing-otter.dragging {
     cursor: grabbing;
     user-select: auto;
+    transition: none;
 }
