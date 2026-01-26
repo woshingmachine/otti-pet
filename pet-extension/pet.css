@@ -1,8 +1,14 @@
 #typing-otter {
-  position: fixed;
-  bottom: 20px;
-  right: 20px;
-  width: 80px;
-  height: 80px;
-  z-index: 2147483647;
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    width: 80px;
+    height: 80px;
+    cursor: grab;
+    user-select: none;
+}
+
+#typing-otter.dragging {
+    cursor: grabbing;
+    user-select: auto;
 }
