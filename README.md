@@ -5,10 +5,11 @@ A cute otter companion that sits on your browser and keeps you company while you
 ## Features
 
 - **Otter Overlay** - A friendly otter appears on every webpage
-- **Draggable** - Click and drag your otter anywhere on the page
-- **Remembers Position** - Your otter stays where you left it, even after refreshing
-- **Smart Positioning** - Automatically adjusts when you resize your browser window
-- **Non-intrusive** - The otter won't interfere with page interactions
+- **Draggable** - Click and drag your otter anywhere on the page (no jump while dragging)
+- **Remembers Position** - Stays where you left it, even after refresh
+- **Smart Positioning** - Keeps within the viewport on resize
+- **Idle Wander** - After 5s of inactivity it swaps to a bored otter and wanders smoothly around the screen, moving immediately on idle and then every few seconds
+- **Non-intrusive** - Designed to stay out of your way
 
 ## Installation
 
@@ -19,30 +20,34 @@ A cute otter companion that sits on your browser and keeps you company while you
 3. Enable **Developer mode** (toggle in the top-right corner)
 4. Click **Load unpacked**
 5. Select the `pet-extension` folder from this project
-6. Your otter should now appear on every webpage
+6. Ensure `bored-otter.png` is present in `pet-extension` (required for idle wander image)
+7. Your otter should now appear on every webpage
 
 ## Usage
 
-- **Move your otter**: Click and drag it to any position on the page
-- **Position is saved**: Your otter will remember where you placed it on each site
-- **Resize friendly**: The otter automatically stays within bounds when you resize the window
+- **Move your otter**: Click and drag anywhere on the page; dragging cancels walking
+- **Idle wander**: After 5 seconds of no interaction it turns bored and starts walking immediately, then keeps strolling on an interval
+- **Position is saved**: Remembers where you left it per site
+- **Resize friendly**: Stays within bounds if you resize the window
 
 ## Project Structure
 pet-extension/
-├── content.js # Main logic for otter behavior and dragging
-├── manifest.json # Extension configuration
-├── pet.css # Styling for the otter overlay
-└── otter.png # The otter image
+├── behavior.js     # Position helpers, persistence, idle/walk behavior
+├── drag.js         # Drag handling (no jump on grab)
+├── content.js      # Entry point wiring behavior + drag
+├── manifest.json   # Extension configuration
+├── pet.css         # Styling and smooth movement transitions
+├── otter.png       # Default otter image
+└── bored-otter.png # Bored state image used when wandering
 
 ## Development Status
 
-This is an iterative build - currently featuring the visual overlay with dragging functionality. More features coming soon!
+Iterative build: draggable pet overlay, idle wander with bored image, and position persistence are implemented. More animations and behaviors to come.
 
 ## Future Plans
 
 - Different otter animations
 - Interactive behaviors
-- Customization options
-- Multiple pet options
+- Typing animations
 
 ---
