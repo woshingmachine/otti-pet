@@ -1,4 +1,7 @@
 (() => {
+    const { TIMINGS } = window.OtterConfig;
+    const MAD_DURATION = TIMINGS.madDuration;
+
     const clampPosition = (otter, left, top) => {
         const maxLeft = Math.max(0, window.innerWidth - otter.offsetWidth);
         const maxTop = Math.max(0, window.innerHeight - otter.offsetHeight);
@@ -64,6 +67,7 @@
         };
 
         const step = () => {
+            if (!isWalking) return; // Only move if actively walking
             const rect = otter.getBoundingClientRect();
             const angle = Math.random() * Math.PI * 2;
             const distance = Math.random() * walkDistance;
@@ -129,6 +133,96 @@
         return { start, stop, isActive: () => isDancing };
     };
 
+    const createMad = (otter, { madSrc, idleSrc, onEnd } = {}) => {
+        let madTimeoutId = null;
+
+        const start = () => {
+            if (madSrc) otter.src = madSrc;
+            // Auto-end mad state after duration
+            madTimeoutId = setTimeout(() => {
+                stop();
+                if (onEnd) onEnd();
+            }, MAD_DURATION);
+        };
+
+        const stop = () => {
+            if (madTimeoutId) clearTimeout(madTimeoutId);
+            if (idleSrc) otter.src = idleSrc;
+        };
+
+        return { start, stop };
+    };
+
+    const createDrag = (otter, {
+        clampPositionFn,
+        applyPositionFn,
+        savePositionFn,
+        resetIdleTimer,
+        isEnabled = () => true,
+        onStart,
+        onEnd,
+    }) => {
+        let isDragging = false;
+        let offsetX = 0;
+        let offsetY = 0;
+
+        const clearSelection = () => {
+            const sel = window.getSelection();
+            if (sel) sel.removeAllRanges();
+        };
+
+        const setDragging = (active) => {
+            isDragging = active;
+            otter.classList.toggle('dragging', active);
+            if (!active) clearSelection();
+        };
+
+        const onMouseDown = (e) => {
+            if (!isEnabled()) return; // Don't drag if disabled
+            
+            // Freeze position to the current visual spot to avoid jump
+            const rect = otter.getBoundingClientRect();
+            applyPositionFn(otter, { left: rect.left, top: rect.top });
+
+            setDragging(true);
+            if (resetIdleTimer) resetIdleTimer();
+            if (onStart) onStart();
+
+            offsetX = e.clientX - rect.left;
+            offsetY = e.clientY - rect.top;
+        };
+
+        const onMouseMove = (e) => {
+            if (!isDragging) return;
+            const { left, top } = clampPositionFn(otter, e.clientX - offsetX, e.clientY - offsetY);
+            applyPositionFn(otter, { left, top });
+        };
+
+        const endDrag = () => {
+            if (!isDragging) return;
+            setDragging(false);
+            if (onEnd) onEnd();
+            if (savePositionFn) savePositionFn();
+        };
+
+        const addListeners = () => {
+            otter.addEventListener('dragstart', (e) => e.preventDefault());
+            otter.addEventListener('mousedown', onMouseDown);
+            document.addEventListener('mousemove', onMouseMove);
+            document.addEventListener('mouseup', endDrag);
+            window.addEventListener('blur', endDrag);
+        };
+
+        const removeListeners = () => {
+            otter.removeEventListener('mousedown', onMouseDown);
+            document.removeEventListener('mousemove', onMouseMove);
+            document.removeEventListener('mouseup', endDrag);
+            window.removeEventListener('blur', endDrag);
+        };
+
+        return { addListeners, removeListeners };
+    };
+
     window.OtterBehavior = {
         clampPosition,
         applyPosition,
@@ -137,5 +231,7 @@
         createWalker,
         createSleeper,
         createDancer,
+        createMad,
+        createDrag,
     };
 })();

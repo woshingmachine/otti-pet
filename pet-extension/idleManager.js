@@ -1,11 +1,13 @@
 (() => {
+    const { TIMINGS } = window.OtterConfig;
+
     const createIdleManager = (otter, {
         idleSrc,
         behaviors = [],
         probabilities = [],
-        minDuration = 10000,  // 10 seconds min
-        maxDuration = 30000,  // 30 seconds max
-        idleWaitTime = 5000,  // 5 seconds of idle before cycling behaviors
+        minDuration = TIMINGS.minIdleDuration,
+        maxDuration = TIMINGS.maxIdleDuration,
+        idleWaitTime = TIMINGS.idleWaitTime,
     } = {}) => {
         let behaviorTimer = null;
         let currentBehavior = null;
