@@ -24,7 +24,7 @@
 
   "web_accessible_resources": [
     {
-      "resources": ["otter.png", "bored-otter.png"],
+      "resources": ["otter.png", "bored-otter.png", "pickup-otter.png"],
       "matches": ["<all_urls>"]
     }
   ]

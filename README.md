@@ -38,7 +38,8 @@ pet-extension/
 ├── manifest.json   # Extension configuration
 ├── pet.css         # Styling and smooth movement transitions
 ├── otter.png       # Default otter image
-└── bored-otter.png # Bored state image used when wandering
+├── bored-otter.png # Bored state image used when wandering
+└── pickup-otter.png # Pick-up animation/image shown while dragging
 
 ## Development Status
 

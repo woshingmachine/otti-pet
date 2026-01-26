@@ -40,14 +40,32 @@
         clampPositionFn = clampPosition,
         applyPositionFn = applyPosition,
         idleTimeout = 5000,
-        walkInterval = 5000,
+        walkInterval = null, // if null, use CSS transition duration for continuous motion
         walkDistance = 800,
         idleSrc,
         boredSrc,
     } = {}) => {
         let isWalking = false;
-        let walkIntervalId = null;
+        let walkTimeoutId = null;
         let idleTimer = null;
+
+        const getTransitionMs = () => {
+            const dur = getComputedStyle(otter).transitionDuration.split(',')[0]?.trim() || '0s';
+            if (dur.endsWith('ms')) return parseFloat(dur);
+            if (dur.endsWith('s')) return parseFloat(dur) * 1000;
+            const n = Number(dur);
+            return Number.isFinite(n) ? n : 0;
+        };
+
+        const scheduleNext = () => {
+            const delay = walkInterval ?? getTransitionMs();
+            // If no transition duration is set, fall back to a gentle cadence
+            const effectiveDelay = delay && delay > 0 ? delay : 2000;
+            walkTimeoutId = setTimeout(() => {
+                step();
+                scheduleNext();
+            }, effectiveDelay);
+        };
 
         const step = () => {
             const rect = otter.getBoundingClientRect();
@@ -67,16 +85,16 @@
             isWalking = true;
             if (boredSrc) otter.src = boredSrc;
             step(); // move immediately
-            walkIntervalId = setInterval(step, walkInterval);
+            scheduleNext(); // keep moving continuously
         };
 
         const stopWalking = () => {
             if (!isWalking) return;
             isWalking = false;
             if (idleSrc) otter.src = idleSrc;
-            if (walkIntervalId) {
-                clearInterval(walkIntervalId);
-                walkIntervalId = null;
+            if (walkTimeoutId) {
+                clearTimeout(walkTimeoutId);
+                walkTimeoutId = null;
             }
         };
 
