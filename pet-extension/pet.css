@@ -6,6 +6,7 @@
     height: 80px;
     cursor: grab;
     user-select: none;
+    z-index: 2147483647;
     transition: left 15s ease-in-out, top 15s ease-in-out;
 }
 

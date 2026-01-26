@@ -39,15 +39,12 @@
     const createWalker = (otter, {
         clampPositionFn = clampPosition,
         applyPositionFn = applyPosition,
-        idleTimeout = 5000,
         walkInterval = null, // if null, use CSS transition duration for continuous motion
         walkDistance = 800,
-        idleSrc,
-        boredSrc,
+        walkSrc,
     } = {}) => {
         let isWalking = false;
         let walkTimeoutId = null;
-        let idleTimer = null;
 
         const getTransitionMs = () => {
             const dur = getComputedStyle(otter).transitionDuration.split(',')[0]?.trim() || '0s';
@@ -59,7 +56,6 @@
 
         const scheduleNext = () => {
             const delay = walkInterval ?? getTransitionMs();
-            // If no transition duration is set, fall back to a gentle cadence
             const effectiveDelay = delay && delay > 0 ? delay : 2000;
             walkTimeoutId = setTimeout(() => {
                 step();
@@ -69,7 +65,6 @@
 
         const step = () => {
             const rect = otter.getBoundingClientRect();
-            // Pick a random destination up to walkDistance pixels away
             const angle = Math.random() * Math.PI * 2;
             const distance = Math.random() * walkDistance;
             const randomX = Math.cos(angle) * distance;
@@ -80,36 +75,58 @@
             applyPositionFn(otter, { left, top });
         };
 
-        const startWalking = () => {
+        const start = () => {
             if (isWalking) return;
             isWalking = true;
-            if (boredSrc) otter.src = boredSrc;
-            step(); // move immediately
-            scheduleNext(); // keep moving continuously
+            if (walkSrc) otter.src = walkSrc;
+            step();
+            scheduleNext();
         };
 
-        const stopWalking = () => {
+        const stop = () => {
             if (!isWalking) return;
             isWalking = false;
-            if (idleSrc) otter.src = idleSrc;
             if (walkTimeoutId) {
                 clearTimeout(walkTimeoutId);
                 walkTimeoutId = null;
             }
         };
 
-        const resetIdleTimer = () => {
-            stopWalking();
-            if (idleTimer) clearTimeout(idleTimer);
-            idleTimer = setTimeout(startWalking, idleTimeout);
+        return { start, stop, isActive: () => isWalking };
+    };
+
+    const createSleeper = (otter, { sleepSrc } = {}) => {
+        let isSleeping = false;
+
+        const start = () => {
+            if (isSleeping) return;
+            isSleeping = true;
+            if (sleepSrc) otter.src = sleepSrc;
         };
 
-        const teardown = () => {
-            if (idleTimer) clearTimeout(idleTimer);
-            stopWalking();
+        const stop = () => {
+            if (!isSleeping) return;
+            isSleeping = false;
         };
 
-        return { startWalking, stopWalking, resetIdleTimer, teardown };
+        return { start, stop, isActive: () => isSleeping };
+    };
+
+    const createDancer = (otter, { danceSrc } = {}) => {
+        let isDancing = false;
+
+        const start = () => {
+            if (isDancing) return;
+            isDancing = true;
+            if (danceSrc) otter.src = danceSrc;
+        };
+
+        const stop = () => {
+            if (!isDancing) return;
+            isDancing = false;
+        };
+
+        return { start, stop, isActive: () => isDancing };
     };
 
     window.OtterBehavior = {
@@ -118,5 +135,7 @@
         savePosition,
         applySavedPosition,
         createWalker,
+        createSleeper,
+        createDancer,
     };
 })();

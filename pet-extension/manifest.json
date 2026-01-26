@@ -1,13 +1,13 @@
 {
   "manifest_version": 3,
   "name": "Otti Pet",
-  "version": "1.1",
-  "description": "Injects a cute otter image on pages.",
+  "version": "1.2",
+  "description": "Injects a cute otter digital pet on pages.",
 
   "icons": {
-    "16": "otter.png",
-    "48": "otter.png",
-    "128": "otter.png"
+    "16": "assets/otter.png",
+    "48": "assets/otter.png",
+    "128": "assets/otter.png"
   },
 
   "permissions": [
@@ -17,14 +17,14 @@
   "content_scripts": [
     {
       "matches": ["<all_urls>"],
-      "js": ["behavior.js", "drag.js", "content.js"],
+      "js": ["behavior.js", "idleManager.js", "drag.js", "content.js"],
       "css": ["pet.css"]
     }
   ],
 
   "web_accessible_resources": [
     {
-      "resources": ["otter.png", "bored-otter.png", "pickup-otter.png"],
+      "resources": ["assets/otter.gif", "assets/bored-otter.png", "assets/pickup-otter.png", "assets/sleeping-otter.gif", "assets/dancing-otter.gif"],
       "matches": ["<all_urls>"]
     }
   ]

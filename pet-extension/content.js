@@ -1,8 +1,10 @@
 if (!document.getElementById("typing-otter")) {
     const otter = document.createElement("img");
-    const idleSrc = chrome.runtime.getURL("otter.png");
-    const boredSrc = chrome.runtime.getURL("bored-otter.png");
-    const pickupSrc = chrome.runtime.getURL("pickup-otter.png");
+    const idleSrc = chrome.runtime.getURL("assets/otter.gif");
+    const walkSrc = chrome.runtime.getURL("assets/bored-otter.png"); // TODO: add walking animation
+    const sleepSrc = chrome.runtime.getURL("assets/sleeping-otter.gif");
+    const danceSrc = chrome.runtime.getURL("assets/dancing-otter.gif");
+    const pickupSrc = chrome.runtime.getURL("assets/pickup-otter.png");
     otter.src = idleSrc;
     otter.id = "typing-otter";
     otter.draggable = false; // avoid native image drag
@@ -10,31 +12,47 @@ if (!document.getElementById("typing-otter")) {
 
     const POS_KEY = 'typing-otter-pos';
 
-    const { clampPosition, applyPosition, savePosition, applySavedPosition, createWalker } = window.OtterBehavior;
+    const { 
+        clampPosition, 
+        applyPosition, 
+        savePosition, 
+        applySavedPosition, 
+        createWalker,
+        createSleeper,
+        createDancer,
+    } = window.OtterBehavior;
+    const { createIdleManager } = window.OtterIdleManager;
     const { createDrag } = window.OtterDrag;
 
     const walker = createWalker(otter, {
         clampPositionFn: clampPosition,
         applyPositionFn: applyPosition,
-        idleTimeout: 5000,
-        walkInterval: null, // use CSS transition duration for continuous motion
+        walkInterval: null,
         walkDistance: 200,
+        walkSrc,
+    });
+
+    const sleeper = createSleeper(otter, { sleepSrc });
+    const dancer = createDancer(otter, { danceSrc });
+
+    const idleManager = createIdleManager(otter, {
         idleSrc,
-        boredSrc,
+        behaviors: [walker, sleeper, dancer],
+        probabilities: [0.4, 0.3, 0.3], // 40% walk, 30% sleep, 30% dance
     });
 
     const drag = createDrag(otter, {
         clampPositionFn: clampPosition,
         applyPositionFn: applyPosition,
         savePositionFn: () => savePosition(otter, POS_KEY),
-        resetIdleTimer: walker.resetIdleTimer,
+        resetIdleTimer: idleManager.resetIdleTimer,
         onStart: () => {
-            walker.stopWalking();
+            idleManager.stopCurrentBehavior();
             if (pickupSrc) otter.src = pickupSrc;
         },
         onEnd: () => {
             otter.src = idleSrc;
-            walker.resetIdleTimer();
+            idleManager.startIdling();
         },
     });
 
@@ -50,7 +68,7 @@ if (!document.getElementById("typing-otter")) {
     const init = () => {
         applySavedPosition(otter, POS_KEY);
         drag.addListeners();
-        walker.resetIdleTimer();
+        idleManager.startIdling();
     };
 
     if (otter.complete) {
