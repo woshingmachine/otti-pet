@@ -2,6 +2,7 @@ if (!document.getElementById("typing-otter")) {
     const otter = document.createElement("img");
     const idleSrc = chrome.runtime.getURL("otter.png");
     const boredSrc = chrome.runtime.getURL("bored-otter.png");
+    const pickupSrc = chrome.runtime.getURL("pickup-otter.png");
     otter.src = idleSrc;
     otter.id = "typing-otter";
     otter.draggable = false; // avoid native image drag
@@ -16,8 +17,8 @@ if (!document.getElementById("typing-otter")) {
         clampPositionFn: clampPosition,
         applyPositionFn: applyPosition,
         idleTimeout: 5000,
-        walkInterval: 5000,
-        walkDistance: 800,
+        walkInterval: null, // use CSS transition duration for continuous motion
+        walkDistance: 200,
         idleSrc,
         boredSrc,
     });
@@ -27,6 +28,14 @@ if (!document.getElementById("typing-otter")) {
         applyPositionFn: applyPosition,
         savePositionFn: () => savePosition(otter, POS_KEY),
         resetIdleTimer: walker.resetIdleTimer,
+        onStart: () => {
+            walker.stopWalking();
+            if (pickupSrc) otter.src = pickupSrc;
+        },
+        onEnd: () => {
+            otter.src = idleSrc;
+            walker.resetIdleTimer();
+        },
     });
 
     const onResize = () => {

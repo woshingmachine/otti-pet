@@ -4,6 +4,8 @@
         applyPositionFn,
         savePositionFn,
         resetIdleTimer,
+        onStart,
+        onEnd,
     }) => {
         let isDragging = false;
         let offsetX = 0;
@@ -27,6 +29,7 @@
 
             setDragging(true);
             if (resetIdleTimer) resetIdleTimer();
+            if (onStart) onStart();
 
             offsetX = e.clientX - rect.left;
             offsetY = e.clientY - rect.top;
@@ -41,6 +44,7 @@
         const endDrag = () => {
             if (!isDragging) return;
             setDragging(false);
+            if (onEnd) onEnd();
             if (savePositionFn) savePositionFn();
         };
 
