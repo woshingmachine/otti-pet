@@ -1,0 +1,25 @@
+{
+  "manifest_version": 3,
+  "name": "Otter Typing Icon",
+  "version": "1.0",
+  "description": "Injects a cute otter image on pages.",
+
+  "permissions": [
+    "activeTab"
+  ],
+
+  "content_scripts": [
+    {
+      "matches": ["<all_urls>"],
+      "js": ["content.js"],
+      "css": ["pet.css"]
+    }
+  ],
+
+  "web_accessible_resources": [
+    {
+      "resources": ["otter.png"],
+      "matches": ["<all_urls>"]
+    }
+  ]
+}

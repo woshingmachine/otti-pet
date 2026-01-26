@@ -1,0 +1,8 @@
+#typing-otter {
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  width: 80px;
+  height: 80px;
+  z-index: 2147483647;
+}
