@@ -10,10 +10,6 @@
     "128": "assets/otter.png"
   },
 
-  "permissions": [
-    "activeTab"
-  ],
-
   "content_scripts": [
     {
       "matches": ["<all_urls>"],
