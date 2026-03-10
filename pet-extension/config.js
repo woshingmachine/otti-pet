@@ -5,7 +5,9 @@
         walk: 'assets/bored-otter.png',
         sleep: 'assets/sleeping-otter.gif',
         dance: 'assets/dancing-otter.gif',
-        pickup: 'assets/pickup-otter.png',
+        pickupIntro: 'assets/otter-pickup1.gif',
+        pickupHold: 'assets/otter-pickup2.gif',
+        pickupRelease: 'assets/otter-pickup1-reverse.gif',
         mad: 'assets/mad-otter.gif',
     };
 
@@ -19,7 +21,8 @@
         minIdleDuration: 10000,   // 10 seconds min
         maxIdleDuration: 30000,   // 30 seconds max
         idleWaitTime: 5000,       // 5 seconds idle before behavior cycles
-        madDuration: 10000,        // 10 seconds mad state
+        madDuration: 10000,       // 10 seconds mad state
+        pickupIntroDuration: 450, // Single cycle for 3-frame pickup intro GIF
     };
 
     // Behavior probabilities

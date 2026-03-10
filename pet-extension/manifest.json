@@ -20,8 +20,9 @@
 
   "web_accessible_resources": [
     {
-      "resources": ["assets/otter.gif", "assets/bored-otter.png", "assets/pickup-otter.png",
-      "assets/sleeping-otter.gif", "assets/dancing-otter.gif", "assets/mad-otter.gif"],
+      "resources": ["assets/otter.gif", "assets/bored-otter.png",
+      "assets/sleeping-otter.gif", "assets/dancing-otter.gif", "assets/mad-otter.gif", "assets/otter-pickup1.gif",
+      "assets/otter-pickup2.gif", "assets/otter-pickup1-reverse.gif"],
       "matches": ["<all_urls>"]
     }
   ]

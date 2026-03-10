@@ -4,6 +4,7 @@ if (!document.getElementById("typing-otter")) {
         STORAGE_KEYS, 
         BEHAVIOR_WEIGHTS, 
         THRESHOLDS,
+        TIMINGS,
         DOM_CONFIG,
     } = window.OtterConfig;
 
@@ -18,6 +19,28 @@ if (!document.getElementById("typing-otter")) {
     let dragCount = 0;
     const dragThreshold = Math.floor(Math.random() * (THRESHOLDS.madTrigger[1] - THRESHOLDS.madTrigger[0] + 1)) + THRESHOLDS.madTrigger[0];
     let isMad = false;
+    let isDragging = false;
+    let pickupTimeoutId = null;
+
+    const pickupIntroSrc = chrome.runtime.getURL(ASSETS.pickupIntro);
+    const pickupHoldSrc = chrome.runtime.getURL(ASSETS.pickupHold);
+    const pickupReleaseSrc = chrome.runtime.getURL(ASSETS.pickupRelease);
+    const idleSrc = chrome.runtime.getURL(ASSETS.idle);
+
+    const clearPickupTimeout = () => {
+        if (!pickupTimeoutId) return;
+        clearTimeout(pickupTimeoutId);
+        pickupTimeoutId = null;
+    };
+
+    const playPickupAnimation = (src, onComplete) => {
+        clearPickupTimeout();
+        otter.src = src;
+        pickupTimeoutId = setTimeout(() => {
+            pickupTimeoutId = null;
+            if (onComplete) onComplete();
+        }, TIMINGS.pickupIntroDuration);
+    };
 
     // Import behavior factories
     const { 
@@ -51,7 +74,7 @@ if (!document.getElementById("typing-otter")) {
 
     const madder = createMad(otter, {
         madSrc: chrome.runtime.getURL(ASSETS.mad),
-        idleSrc: chrome.runtime.getURL(ASSETS.idle),
+        idleSrc,
         onEnd: () => {
             isMad = false;
             idleManager.startIdling();
@@ -74,18 +97,24 @@ if (!document.getElementById("typing-otter")) {
         isEnabled: () => !isMad,
         onStart: () => {
             idleManager.stopCurrentBehavior();
-            otter.src = chrome.runtime.getURL(ASSETS.pickup);
+            isDragging = true;
+            playPickupAnimation(pickupIntroSrc, () => {
+                if (isDragging) otter.src = pickupHoldSrc;
+            });
         },
         onEnd: () => {
-            dragCount++;
-            if (dragCount >= dragThreshold) {
-                isMad = true;
-                madder.start();
-                dragCount = 0;
-            } else {
-                otter.src = chrome.runtime.getURL(ASSETS.idle);
-                idleManager.startIdling();
-            }
+            isDragging = false;
+            playPickupAnimation(pickupReleaseSrc, () => {
+                dragCount++;
+                if (dragCount >= dragThreshold) {
+                    isMad = true;
+                    madder.start();
+                    dragCount = 0;
+                } else {
+                    otter.src = idleSrc;
+                    idleManager.startIdling();
+                }
+            });
         },
     });
 
