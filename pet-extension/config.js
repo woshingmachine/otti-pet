@@ -3,7 +3,9 @@
     const ASSETS = {
         idle: 'assets/otter.gif',
         walk: 'assets/bored-otter.png',
+        sleepIntro: 'assets/sleepy-otter-intro.gif',
         sleep: 'assets/sleeping-otter.gif',
+        sleepEnd: 'assets/sleepy-otter-end.gif',
         dance: 'assets/dancing-otter.gif',
         pickupIntro: 'assets/otter-pickup1.gif',
         pickupHold: 'assets/otter-pickup2.gif',
@@ -18,11 +20,13 @@
 
     // Behavior timings (milliseconds)
     const TIMINGS = {
-        minIdleDuration: 10000,   // 10 seconds min
-        maxIdleDuration: 30000,   // 30 seconds max
+        minIdleDuration: 40000,   // 40 seconds min
+        maxIdleDuration: 100000,   // 100 seconds max
         idleWaitTime: 5000,       // 5 seconds idle before behavior cycles
         madDuration: 10000,       // 10 seconds mad state
         pickupIntroDuration: 450, // Single cycle for 3-frame pickup intro GIF
+        sleepIntroDuration: 13000, // Full duration of sleepy-otter-intro.gif
+        sleepEndDuration: 13000,   // Full duration of sleepy-otter-end.gif
     };
 
     // Behavior probabilities

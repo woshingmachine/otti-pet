@@ -12,17 +12,43 @@
         let behaviorTimer = null;
         let currentBehavior = null;
         let isActive = false;
+        let idleTransitionTimer = null;
+
+        const clearIdleTransitionTimer = () => {
+            if (!idleTransitionTimer) return;
+            clearTimeout(idleTransitionTimer);
+            idleTransitionTimer = null;
+        };
 
         const getRandomDuration = () => {
             return Math.random() * (maxDuration - minDuration) + minDuration;
         };
 
         const stopCurrentBehavior = () => {
+            clearIdleTransitionTimer();
+            let stopAnimationDuration = 0;
+
             if (currentBehavior) {
+                if (typeof currentBehavior.getStopAnimationDuration === 'function') {
+                    stopAnimationDuration = currentBehavior.getStopAnimationDuration();
+                }
                 currentBehavior.stop();
                 currentBehavior = null;
             }
-            if (idleSrc) otter.src = idleSrc;
+
+            if (!idleSrc) return;
+            if (stopAnimationDuration <= 0) {
+                otter.src = idleSrc;
+                return;
+            }
+
+            idleTransitionTimer = setTimeout(() => {
+                idleTransitionTimer = null;
+                // Only apply idle if idling is active and no new behavior has started.
+                if (isActive && !currentBehavior) otter.src = idleSrc;
+            }, stopAnimationDuration);
+
+            return stopAnimationDuration;
         };
 
         const pickRandomBehavior = () => {
@@ -42,17 +68,28 @@
         const cycleBehaviors = () => {
             if (!isActive) return;
 
-            stopCurrentBehavior();
-            currentBehavior = pickRandomBehavior();
-            if (currentBehavior) {
-                currentBehavior.start();
+            const stopDelay = stopCurrentBehavior();
+
+            const startNextBehavior = () => {
+                if (!isActive) return;
+
+                currentBehavior = pickRandomBehavior();
+                if (currentBehavior) {
+                    currentBehavior.start();
+                }
+
+                const duration = getRandomDuration();
+                behaviorTimer = setTimeout(() => {
+                    cycleBehaviors();
+                }, duration);
+            };
+
+            if (stopDelay > 0) {
+                behaviorTimer = setTimeout(startNextBehavior, stopDelay);
+                return;
             }
 
-            const duration = getRandomDuration();
-            behaviorTimer = setTimeout(() => {
-                stopCurrentBehavior();
-                cycleBehaviors();
-            }, duration);
+            startNextBehavior();
         };
 
         const resetIdleTimer = () => {
@@ -71,6 +108,7 @@
 
         const teardown = () => {
             if (behaviorTimer) clearTimeout(behaviorTimer);
+            clearIdleTransitionTimer();
             stopCurrentBehavior();
         };
 

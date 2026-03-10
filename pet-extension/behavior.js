@@ -99,21 +99,54 @@
         return { start, stop, isActive: () => isWalking };
     };
 
-    const createSleeper = (otter, { sleepSrc } = {}) => {
+    const createSleeper = (otter, {
+        sleepIntroSrc,
+        sleepSrc,
+        sleepEndSrc,
+        sleepIntroDuration = 500,
+        sleepEndDuration = 500,
+    } = {}) => {
         let isSleeping = false;
+        let sleepPhaseTimerId = null;
+        let sleepCycleId = 0;
+
+        const clearSleepPhaseTimer = () => {
+            if (!sleepPhaseTimerId) return;
+            clearTimeout(sleepPhaseTimerId);
+            sleepPhaseTimerId = null;
+        };
 
         const start = () => {
             if (isSleeping) return;
             isSleeping = true;
+            sleepCycleId += 1;
+            const currentCycleId = sleepCycleId;
+            clearSleepPhaseTimer();
+
+            if (sleepIntroSrc) {
+                otter.src = sleepIntroSrc;
+                sleepPhaseTimerId = setTimeout(() => {
+                    sleepPhaseTimerId = null;
+                    if (!isSleeping || sleepCycleId !== currentCycleId) return;
+                    if (sleepSrc) otter.src = sleepSrc;
+                }, sleepIntroDuration);
+                return;
+            }
+
             if (sleepSrc) otter.src = sleepSrc;
         };
 
         const stop = () => {
             if (!isSleeping) return;
             isSleeping = false;
+            sleepCycleId += 1;
+            clearSleepPhaseTimer();
+            if (sleepEndSrc) otter.src = sleepEndSrc;
         };
 
-        return { start, stop, isActive: () => isSleeping };
+        const getStopAnimationDuration = () => sleepEndSrc ? sleepEndDuration : 0;
+
+        return { start, stop, isActive: () => isSleeping, getStopAnimationDuration };
     };
 
     const createDancer = (otter, { danceSrc } = {}) => {

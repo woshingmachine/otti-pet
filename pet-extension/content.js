@@ -21,16 +21,25 @@ if (!document.getElementById("typing-otter")) {
     let isMad = false;
     let isDragging = false;
     let pickupTimeoutId = null;
+    let postDragSleepTimeoutId = null;
+    let interruptedSleepOnDrag = false;
 
     const pickupIntroSrc = chrome.runtime.getURL(ASSETS.pickupIntro);
     const pickupHoldSrc = chrome.runtime.getURL(ASSETS.pickupHold);
     const pickupReleaseSrc = chrome.runtime.getURL(ASSETS.pickupRelease);
+    const sleepEndSrc = chrome.runtime.getURL(ASSETS.sleepEnd);
     const idleSrc = chrome.runtime.getURL(ASSETS.idle);
 
     const clearPickupTimeout = () => {
         if (!pickupTimeoutId) return;
         clearTimeout(pickupTimeoutId);
         pickupTimeoutId = null;
+    };
+
+    const clearPostDragSleepTimeout = () => {
+        if (!postDragSleepTimeoutId) return;
+        clearTimeout(postDragSleepTimeoutId);
+        postDragSleepTimeoutId = null;
     };
 
     const playPickupAnimation = (src, onComplete) => {
@@ -40,6 +49,21 @@ if (!document.getElementById("typing-otter")) {
             pickupTimeoutId = null;
             if (onComplete) onComplete();
         }, TIMINGS.pickupIntroDuration);
+    };
+
+    const resumeAfterDrag = () => {
+        if (interruptedSleepOnDrag) {
+            interruptedSleepOnDrag = false;
+            otter.src = sleepEndSrc;
+            postDragSleepTimeoutId = setTimeout(() => {
+                postDragSleepTimeoutId = null;
+                idleManager.startIdling();
+            }, TIMINGS.sleepEndDuration);
+            return;
+        }
+
+        otter.src = idleSrc;
+        idleManager.startIdling();
     };
 
     // Import behavior factories
@@ -65,7 +89,11 @@ if (!document.getElementById("typing-otter")) {
     });
 
     const sleeper = createSleeper(otter, {
+        sleepIntroSrc: chrome.runtime.getURL(ASSETS.sleepIntro),
         sleepSrc: chrome.runtime.getURL(ASSETS.sleep),
+        sleepEndSrc: chrome.runtime.getURL(ASSETS.sleepEnd),
+        sleepIntroDuration: TIMINGS.sleepIntroDuration,
+        sleepEndDuration: TIMINGS.sleepEndDuration,
     });
 
     const dancer = createDancer(otter, {
@@ -93,10 +121,11 @@ if (!document.getElementById("typing-otter")) {
         clampPositionFn: clampPosition,
         applyPositionFn: applyPosition,
         savePositionFn: () => savePosition(otter, STORAGE_KEYS.position),
-        resetIdleTimer: idleManager.resetIdleTimer,
         isEnabled: () => !isMad,
         onStart: () => {
-            idleManager.stopCurrentBehavior();
+            clearPostDragSleepTimeout();
+            interruptedSleepOnDrag = sleeper.isActive();
+            idleManager.resetIdleTimer();
             isDragging = true;
             playPickupAnimation(pickupIntroSrc, () => {
                 if (isDragging) otter.src = pickupHoldSrc;
@@ -107,12 +136,12 @@ if (!document.getElementById("typing-otter")) {
             playPickupAnimation(pickupReleaseSrc, () => {
                 dragCount++;
                 if (dragCount >= dragThreshold) {
+                    interruptedSleepOnDrag = false;
                     isMad = true;
                     madder.start();
                     dragCount = 0;
                 } else {
-                    otter.src = idleSrc;
-                    idleManager.startIdling();
+                    resumeAfterDrag();
                 }
             });
         },
